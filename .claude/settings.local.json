@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python create_map_poster.py:*)",
+      "Bash(source:*)"
+    ]
+  }
+}
