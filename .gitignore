@@ -1,4 +1,4 @@
-!maptoposter/posters/.gitkeep
+!posters/.gitkeep
 # Generated Posters (keep directory structure but not the files)
 # IDE
 # Jupyter Notebooks
@@ -44,9 +44,9 @@ env/
 htmlcov/
 lib/
 lib64/
-maptoposter/posters/*.dxf
-maptoposter/posters/*.png
-maptoposter/posters/*.svg
+posters/**/*.dxf
+posters/**/*.png
+posters/**/*.svg
 parts/
 pip-wheel-metadata/
 sdist/

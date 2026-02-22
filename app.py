@@ -7,8 +7,8 @@ import glob
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SCRIPT = os.path.join(BASE_DIR, 'maptoposter', 'create_map_poster_hmi.py')
-POSTERS_DIR = os.path.join(BASE_DIR, 'maptoposter', 'posters')
+SCRIPT = os.path.join(BASE_DIR, 'create_map_poster_hmi.py')
+POSTERS_DIR = os.path.join(BASE_DIR, 'posters')
 
 
 @app.route('/')
@@ -62,7 +62,7 @@ def generate():
             cmd,
             capture_output=True,
             text=True,
-            cwd=os.path.join(BASE_DIR, 'maptoposter'),
+            cwd=BASE_DIR,
         )
     except Exception as e:
         return jsonify({'error': f'Failed to run script: {str(e)}'}), 500
