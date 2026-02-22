@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(python create_map_poster.py:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "Bash(python:*)",
+      "Bash(sips -g pixelWidth -g pixelHeight:*)",
+      "mcp__filesystem__directory_tree",
+      "mcp__filesystem__list_directory_with_sizes"
     ]
   }
 }
