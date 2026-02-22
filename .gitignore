@@ -1,65 +1,59 @@
-# Python
-__pycache__/
-*.py[cod]
+!maptoposter/posters/.gitkeep
+# Generated Posters (keep directory structure but not the files)
+# IDE
+# Jupyter Notebooks
+# Keep the posters directory itself
+# OS
+# Project specific
+# Testing
+# Virtual Environment
 *$py.class
+*.egg
+*.egg-info/
+*.ipynb
+*.log
+*.py[cod]
 *.so
+*.swo
+*.swp
+*~
+.DS_Store
+.DS_Store# Python
 .Python
+.coverage
+.eggs/
+.env/
+.idea/
+.installed.cfg
+.ipynb_checkpoints/
+.pytest_cache/
+.venv/
+.vscode/
+ENV/
+MANIFEST
+Thumbs.db
+__pycache__/
 build/
+cache/*
 develop-eggs/
 dist/
 downloads/
 eggs/
-.eggs/
+env.bak/
+env/
+htmlcov/
 lib/
 lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environment
-venv/
-env/
-ENV/
-env.bak/
-venv.bak/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Generated Posters (keep directory structure but not the files)
+maptoposter/posters/*.dxf
 maptoposter/posters/*.png
 maptoposter/posters/*.svg
-maptoposter/posters/*.dxf
-
-# Keep the posters directory itself
-!maptoposter/posters/.gitkeep
-
-# Jupyter Notebooks
-.ipynb_checkpoints/
-*.ipynb
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Project specific
-*.log
+parts/
+pip-wheel-metadata/
+sdist/
+share/python-wheels/
 temp/
 tmp/
+var/
+venv.bak/
+venv/
+wheels/
