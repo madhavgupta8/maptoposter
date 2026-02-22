@@ -1,59 +1,77 @@
-!posters/.gitkeep
-# Generated Posters (keep directory structure but not the files)
-# IDE
-# Jupyter Notebooks
-# Keep the posters directory itself
-# OS
-# Project specific
-# Testing
-# Virtual Environment
+# Python
+*.py[cod]
 *$py.class
+*.so
 *.egg
 *.egg-info/
-*.ipynb
-*.log
-*.py[cod]
-*.so
-*.swo
-*.swp
-*~
-.DS_Store
-.DS_Store# Python
-.Python
-.coverage
-.eggs/
-.env/
-.idea/
-.installed.cfg
-.ipynb_checkpoints/
-.pytest_cache/
-.venv/
-.vscode/
-ENV/
 MANIFEST
-Thumbs.db
-__pycache__/
-build/
-cache/*
+.Python
+.eggs/
+.installed.cfg
+pip-wheel-metadata/
+share/python-wheels/
+wheels/
+sdist/
 develop-eggs/
-dist/
 downloads/
 eggs/
-env.bak/
-env/
-htmlcov/
 lib/
 lib64/
+parts/
+var/
+build/
+dist/
+
+# Virtual environments
+env/
+env.bak/
+ENV/
+.env/
+.venv/
+venv/
+venv.bak/
+
+# Caches
+__pycache__/
+.pytest_cache/
+.ipynb_checkpoints/
+htmlcov/
+.coverage
+cache/*
+.cache/*
+temp/
+tmp/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+*~
+
+# Jupyter Notebooks
+*.ipynb
+
+# Logs
+*.log
+
+# Package manager
+uv.lock
+
+# Test outputs
+test_venv/
+
+# Build artifacts
+pyproject.toml.bak
+
+# Generated Posters (keep directory structure but not the files)
 posters/**/*.dxf
 posters/**/*.png
 posters/**/*.svg
-parts/
-pip-wheel-metadata/
-sdist/
-share/python-wheels/
-temp/
-tmp/
-var/
-venv.bak/
-venv/
-wheels/
+# Keep the posters directory itself
+!posters/.gitkeep
