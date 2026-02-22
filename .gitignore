@@ -1,59 +1,39 @@
-!maptoposter/posters/.gitkeep
-# Generated Posters (keep directory structure but not the files)
-# IDE
-# Jupyter Notebooks
-# Keep the posters directory itself
-# OS
-# Project specific
-# Testing
-# Virtual Environment
-*$py.class
-*.egg
-*.egg-info/
-*.ipynb
-*.log
-*.py[cod]
-*.so
-*.swo
-*.swp
-*~
-.DS_Store
-.DS_Store# Python
-.Python
-.coverage
-.eggs/
+cache/*
+
+# Virtual environments
+env/
 .env/
 .idea/
 .installed.cfg
 .ipynb_checkpoints/
 .pytest_cache/
 .venv/
-.vscode/
-ENV/
-MANIFEST
-Thumbs.db
-__pycache__/
-build/
-cache/*
-develop-eggs/
-dist/
-downloads/
-eggs/
-env.bak/
-env/
-htmlcov/
-lib/
-lib64/
-maptoposter/posters/*.dxf
-maptoposter/posters/*.png
-maptoposter/posters/*.svg
-parts/
-pip-wheel-metadata/
-sdist/
-share/python-wheels/
-temp/
-tmp/
-var/
-venv.bak/
 venv/
-wheels/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/
+*.pyc
+__pycache__/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.sublime-*
+
+# OS files
+.DS_Store
+Thumbs.db
+.cache/*
+
+# Package manager
+uv.lock
+
+# Test outputs
+test_venv/
+htmlcov/
+.coverage
+.pytest_cache/

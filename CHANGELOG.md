@@ -1,91 +1,101 @@
 # Changelog
 
-All notable changes to the City Map Poster Generator project will be documented in this file.
+All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
----
-
-## [2.0.0] - 2026-02-01
+## [Unreleased] - Community Contributions
 
 ### Added
+- **uv package manager support** ([PR #20](https://github.com/originalankur/maptoposter/pull/20))
+  - Added `pyproject.toml` with project metadata and dependencies
+  - Added `uv.lock` for reproducible builds
+  - Added shebang to `create_map_poster.py` for direct execution
+  - Updated README with uv installation instructions
+- **Python version specification** - `requires-python = ">=3.11"` in pyproject.toml (fixes [#79](https://github.com/originalankur/maptoposter/issues/79))
+- **Coordinate override** - `--latitude` and `--longitude` arguments to override the geocoded center point (existing from upstream PR #106, clarifies [#100](https://github.com/originalankur/maptoposter/issues/100))
+  - Still requires `--city` and `--country` for display name
+  - Useful for precise location control
 
-#### SVG Vector Format Support
-- **New Script**: `maptoposter/create_map_poster_svg.py`
-- Generates infinitely scalable vector posters in SVG format
-- Perfect for web display, digital use, and vector editing
-- Can be edited in Adobe Illustrator, Inkscape, and other vector graphics software
-- Smaller file sizes compared to high-resolution PNG
-- No quality loss when scaling to any size
-- Zero additional dependencies required
-
-#### DXF CAD Format Support
-- **New Script**: `maptoposter/create_map_poster_dxf.py`
-- Generates CAD-ready vector posters in DXF format
-- Industry-standard format for professional plotting and printing
-- Compatible with AutoCAD, LibreCAD, QCAD, and other CAD software
-- Ideal for architectural presentations and large-format prints
-- Infinitely scalable vector format
-- Uses hybrid SVG-to-DXF conversion approach
-
-#### New Dependencies
-- `ezdxf >= 1.1.0` - For DXF file creation and manipulation
-- `svgpathtools >= 1.5.0` - For SVG path parsing and conversion
+### Fixed
+- **Z-order bug** - Roads now render above parks and water features (fixes [#39](https://github.com/originalankur/maptoposter/issues/39), relates to [PR #42](https://github.com/originalankur/maptoposter/pull/42))
+  - Water layer: `zorder=1` → `zorder=0.5`
+  - Parks layer: `zorder=2` → `zorder=0.8`
+  - Roads remain at `zorder=2` (matplotlib default), ensuring proper layering
+- **Text scaling for landscape orientations** - Font size now scales based on `min(height, width)` instead of just width (fixes [#112](https://github.com/originalankur/maptoposter/issues/112))
 
 ### Changed
-- Updated `requirements.txt` with new dependencies for DXF support
-- Original PNG script (`create_map_poster.py`) remains unchanged and fully functional
-
-### Technical Details
-
-#### Implementation Approach
-1. **SVG Implementation**: Direct matplotlib SVG export (simple modification)
-2. **DXF Implementation**: Hybrid approach
-   - Matplotlib renders to SVG first
-   - Custom SVG-to-DXF converter parses SVG paths
-   - Converts paths, lines, and rectangles to DXF entities
-   - Handles coordinate system transformation (SVG Y-axis → DXF Y-axis)
-
-#### File Structure
-```
-maptoposter/
-├── create_map_poster.py      # Original PNG (300 DPI)
-├── create_map_poster_svg.py  # New: SVG vector format
-└── create_map_poster_dxf.py  # New: DXF CAD format
-```
-
-### Format Comparison
-
-| Format | Type   | Scalability | Best For                    | File Size |
-|--------|--------|-------------|----------------------------|-----------|
-| PNG    | Raster | Fixed DPI   | Digital display, sharing   | Large     |
-| SVG    | Vector | Infinite    | Web, editing, general use  | Small     |
-| DXF    | Vector | Infinite    | CAD, plotting, pro prints  | Medium    |
-
-### Usage Examples
-
-```bash
-# Generate PNG (original)
-python maptoposter/create_map_poster.py -c "Paris" -C "France" -t noir
-
-# Generate SVG (vector)
-python maptoposter/create_map_poster_svg.py -c "Paris" -C "France" -t noir
-
-# Generate DXF (CAD)
-python maptoposter/create_map_poster_dxf.py -c "Paris" -C "France" -t noir
-```
+- Updated `.gitignore` with poster outputs, Python build artifacts, IDE files, and OS-specific files
 
 ---
 
-## [1.0.0] - 2026-01-01
+## [0.3.0] - 2026-01-27 (Maintainer: @originalankur)
 
-### Initial Release
-- PNG map poster generation at 300 DPI
-- 17 beautiful themes (noir, blueprint, japanese_ink, etc.)
-- Support for any city worldwide via OpenStreetMap
-- Road hierarchy visualization with different colors
-- Water features and parks rendering
-- Customizable dimensions and map radius
-- Typography with Roboto fonts
-- Gradient fade effects
-- OpenStreetMap attribution
+### Added
+- **Custom coordinates support** - `--latitude` and `--longitude` arguments ([#106](https://github.com/originalankur/maptoposter/pull/106))
+- **Emerald theme** - Lush dark green aesthetic with mint accents ([#114](https://github.com/originalankur/maptoposter/pull/114))
+- **GitHub Actions** - PR checks workflow ([#98](https://github.com/originalankur/maptoposter/pull/98))
+- **Conflict labeling** - Auto-label PRs with merge conflicts
+
+### Changed
+- **Default theme** changed from `feature_based` to `terracotta` ([#131](https://github.com/originalankur/maptoposter/pull/131))
+- **Default distance** changed from 12000m to 18000m ([#128](https://github.com/originalankur/maptoposter/pull/128))
+- **Max dimensions** enforced at 20 inches for width/height (supports up to 4K resolution) ([#128](https://github.com/originalankur/maptoposter/pull/128), [#129](https://github.com/originalankur/maptoposter/pull/129))
+
+### Removed
+- `feature_based` theme ([#131](https://github.com/originalankur/maptoposter/pull/131))
+
+### Fixed
+- Cache directory handling ([#109](https://github.com/originalankur/maptoposter/pull/109))
+- Dynamic font scaling based on poster width
+
+---
+
+## [0.2.1] - 2026-01-18 (Maintainer: @originalankur)
+
+### Added
+- **SVG/PDF export** - `--format` flag for vector output ([#57](https://github.com/originalankur/maptoposter/pull/57))
+- **Variable poster dimensions** - `-W` and `-H` arguments ([#59](https://github.com/originalankur/maptoposter/pull/59))
+- **Caching** - Downloaded OSM data is now cached locally
+- **Rate limiting** - 0.3s delay between API requests
+
+### Fixed
+- Map warping issues with variable dimensions ([#59](https://github.com/originalankur/maptoposter/pull/59))
+- Edge nodes retention for complete road networks ([#27](https://github.com/originalankur/maptoposter/pull/27))
+- Point geometry filtering to prevent dots on maps
+- Dynamic font size adjustment for long city names
+- Nominatim timeout increased to 10 seconds
+
+### Changed
+- Graph projection to linear coordinates for proper aspect ratio
+- Improved cache handling with hashed filenames and error handling
+
+---
+
+## [0.2.0] - 2026-01-17 (Tag: v0.2)
+
+### Added
+- Example poster images in README
+- Initial theme collection
+
+---
+
+## [0.1.0] - 2026-01-17 (Initial Release)
+
+### Added
+- Initial maptoposter source code
+- README with usage instructions
+- 17 built-in themes:
+  - autumn, blueprint, contrast_zones, copper_patina
+  - forest, gradient_roads, japanese_ink, midnight_blue
+  - monochrome_blue, neon_cyberpunk, noir, ocean
+  - pastel_dream, sunset, terracotta, warm_beige
+- Core features:
+  - City/country based map generation
+  - Customizable themes via JSON
+  - Road hierarchy coloring
+  - Water and park feature rendering
+  - Typography with Roboto font
+  - Coordinate display
+  - OSM attribution
