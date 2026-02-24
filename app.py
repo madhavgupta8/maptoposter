@@ -3,8 +3,11 @@ import subprocess
 import sys
 import os
 import glob
+import urllib.request
+import urllib.parse
+import json as _json
 
-app = Flask(__name__, static_folder='.', static_url_path='')
+app = Flask(__name__, static_folder='static', static_url_path='/static')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPT = os.path.join(BASE_DIR, 'maptoposter', 'create_map_poster_hmi.py')
@@ -94,6 +97,34 @@ def generate():
     })
 
 
+@app.route('/geocode')
+def geocode():
+    city = request.args.get('city', '').strip()
+    country = request.args.get('country', '').strip()
+    if not city or not country:
+        return jsonify([])
+
+    url = (
+        f"https://nominatim.openstreetmap.org/search"
+        f"?city={urllib.parse.quote(city)}"
+        f"&country={urllib.parse.quote(country)}"
+        f"&format=json&limit=1"
+    )
+    req = urllib.request.Request(
+        url,
+        headers={
+            'User-Agent': 'MapPosterGenerator/1.0 (local dev tool)',
+            'Accept-Language': 'en',
+        }
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = _json.loads(resp.read().decode())
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/poster/<path:filepath>')
 def serve_poster(filepath):
     return send_from_directory(POSTERS_DIR, filepath)
@@ -103,7 +134,7 @@ if __name__ == '__main__':
     print("=" * 50)
     print("Map Poster Generator — HMI Server")
     print("=" * 50)
-    print(f"Open http://localhost:4786 in your browser")
+    print(f"Open http://localhost:4876 in your browser")
     print("Press Ctrl+C to stop")
     print("=" * 50)
-    app.run(debug=True, port=4786)
+    app.run(debug=True, port=4876)

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "map-poster-hmi",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["app.py"],
+      "port": 4876
+    }
+  ]
+}

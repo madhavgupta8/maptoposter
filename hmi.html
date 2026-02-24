@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Map Poster Generator</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.min.css" crossorigin="">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.min.js" crossorigin=""></script>
+<link rel="stylesheet" href="/static/leaflet.min.css">
+<script src="/static/leaflet.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -632,6 +632,7 @@
   // ─── Theme data ────────────────────────────────────────────────────────────
   const THEMES = {
     autumn:          { name: "Autumn",          bg: "#FBF7F0", road: "#8B2500" },
+    earth_heritage:  { name: "Earth Heritage",  bg: "#EFE6D8", road: "#6B3F2A" },
     blueprint:       { name: "Blueprint",       bg: "#1A3A5C", road: "#E8F4FF" },
     contrast_zones:  { name: "Contrast Zones",  bg: "#FFFFFF", road: "#000000" },
     copper_patina:   { name: "Copper Patina",   bg: "#E8F0F0", road: "#B87333" },
@@ -843,8 +844,8 @@
     document.getElementById('map-loading-overlay').classList.add('visible');
 
     try {
-      const url = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&format=json&limit=1`;
-      const resp = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+      const url = `/geocode?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}`;
+      const resp = await fetch(url);
       const data = await resp.json();
 
       if (!data || data.length === 0) {
