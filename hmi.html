@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Map Poster Generator</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.min.css" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.min.js" crossorigin=""></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -28,12 +30,94 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
-    padding: 32px 16px 64px;
   }
 
-  .card {
-    max-width: 680px;
+  /* ─── Two-column page layout ─────────────────────────────────────────────── */
+  .page-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    max-width: 1280px;
     margin: 0 auto;
+    padding: 32px 24px 64px;
+  }
+
+  .left-panel {
+    flex: 0 0 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .right-panel {
+    flex: 1 1 0;
+    min-width: 0;
+    position: sticky;
+    top: 32px;
+  }
+
+  /* ─── Map preview ─────────────────────────────────────────────────────────── */
+  #map-preview {
+    width: 100%;
+    height: 640px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    background: #E8EAF0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  #map-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--text-hint);
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 10;
+    background: #EEF0F5;
+  }
+
+  #map-placeholder svg {
+    width: 36px;
+    height: 36px;
+    opacity: 0.45;
+  }
+
+  #map-loading-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.65);
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  #map-loading-overlay.visible { display: flex; }
+
+  #map-geo-error {
+    display: none;
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--error);
+    font-size: 12px;
+    z-index: 1001;
+  }
+  #map-geo-error.visible { display: block; }
+
+  /* ─── Card ───────────────────────────────────────────────────────────────── */
+  .card {
+    width: 100%;
     background: var(--card);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
@@ -87,8 +171,7 @@
     color: var(--text-muted);
     text-transform: uppercase;
   }
-  input[type="text"],
-  input[type="number"] {
+  input[type="text"] {
     width: 100%;
     padding: 10px 14px;
     border: 1.5px solid var(--border);
@@ -99,8 +182,7 @@
     outline: none;
     transition: border-color 0.15s, background 0.15s;
   }
-  input[type="text"]:focus,
-  input[type="number"]:focus {
+  input[type="text"]:focus {
     border-color: var(--border-focus);
     background: #fff;
   }
@@ -130,7 +212,7 @@
   /* Theme grid */
   .theme-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 8px;
   }
   .swatch-card {
@@ -275,7 +357,9 @@
 
   /* Output section */
   .output-section {
-    border-top: 1px solid var(--border);
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
     padding: 28px 32px;
     display: none;
   }
@@ -356,110 +440,193 @@
   }
   .download-btn:hover { background: var(--accent); color: #fff; }
 
-  /* Radius row */
-  .radius-row {
+  /* ─── Radius slider ───────────────────────────────────────────────────────── */
+  .radius-slider-header {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: baseline;
+    justify-content: space-between;
   }
-  .radius-row input { max-width: 130px; }
-  .radius-unit { font-size: 13px; color: var(--text-muted); }
+  .radius-value-display {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    outline: none;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(37,99,235,0.35);
+    transition: transform 0.1s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+  input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(37,99,235,0.35);
+  }
+
+  /* ─── Responsive ─────────────────────────────────────────────────────────── */
+  @media (max-width: 960px) {
+    .page-layout {
+      flex-direction: column;
+    }
+    .left-panel {
+      flex: none;
+      width: 100%;
+    }
+    .right-panel {
+      position: static;
+      width: 100%;
+    }
+    #map-preview { height: 380px; }
+  }
 
   @media (max-width: 520px) {
+    .page-layout { padding: 16px 12px 48px; }
     .form-body { padding: 20px 18px; }
     .header { padding: 20px 18px; }
     .output-section { padding: 20px 18px; }
     .field-row { grid-template-columns: 1fr; }
-    .theme-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+    .theme-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+    #map-preview { height: 280px; }
   }
 </style>
 </head>
 <body>
 
-<div class="card">
-  <div class="header">
-    <div class="header-title">Cartography Tool</div>
-    <h1>Map Poster Generator</h1>
+<div class="page-layout">
+
+  <!-- ─── Left panel: form + output ──────────────────────────────────────── -->
+  <div class="left-panel">
+
+    <div class="card">
+      <div class="header">
+        <div class="header-title">Cartography Tool</div>
+        <h1>Map Poster Generator</h1>
+      </div>
+
+      <div class="form-body">
+
+        <!-- City & Country -->
+        <div class="field-row">
+          <div class="field-group">
+            <label for="city">City</label>
+            <input type="text" id="city" placeholder="e.g. Kanpur" autocomplete="off">
+            <div class="error-msg" id="city-error">City is required</div>
+          </div>
+          <div class="field-group">
+            <label for="country">Country</label>
+            <input type="text" id="country" placeholder="e.g. India" autocomplete="off">
+            <div class="error-msg" id="country-error">Country is required</div>
+          </div>
+        </div>
+
+        <!-- Theme -->
+        <div>
+          <div class="section-label">Theme</div>
+          <div class="theme-grid" id="theme-grid"></div>
+        </div>
+
+        <!-- Radius slider -->
+        <div class="field-group">
+          <div class="radius-slider-header">
+            <label for="radius">Radius from city centre</label>
+            <span class="radius-value-display" id="radius-display">29 km</span>
+          </div>
+          <input type="range" id="radius" min="1000" max="100000" step="1000" value="29000">
+          <div class="field-hint" id="radius-hint">Wide area — best for regional maps</div>
+        </div>
+
+        <!-- Aspect Ratio -->
+        <div class="field-group">
+          <label>Aspect Ratio</label>
+          <div class="toggle-group" id="ratio-group">
+            <button class="toggle-btn active" data-value="3:4">3 : 4 &nbsp;Portrait (12 × 16 in)</button>
+            <button class="toggle-btn" data-value="4:5">4 : 5 &nbsp;Portrait (12 × 15 in)</button>
+          </div>
+        </div>
+
+        <!-- Small roads -->
+        <label class="checkbox-label">
+          <input type="checkbox" id="small-roads">
+          <span class="checkbox-custom"></span>
+          <div class="checkbox-text">
+            <span>Include small roads</span>
+            <span class="hint">residential · living_street · unclassified</span>
+          </div>
+        </label>
+
+        <!-- Generate -->
+        <button class="generate-btn" id="generate-btn" onclick="generate()">
+          Generate Poster
+        </button>
+
+      </div><!-- /form-body -->
+    </div><!-- /card -->
+
+    <!-- Output (outside card, still in left panel) -->
+    <div class="output-section" id="output-section">
+
+      <div class="spinner-wrap" id="spinner">
+        <div class="spinner"></div>
+        <div class="spinner-text">Fetching map data &amp; rendering — this may take a minute…</div>
+      </div>
+
+      <div class="output-error" id="output-error"></div>
+
+      <div class="result-wrap" id="result-wrap">
+        <img class="result-img" id="result-img" src="" alt="Generated map poster">
+        <div class="result-meta">
+          <div class="result-filename" id="result-filename"></div>
+          <a class="download-btn" id="download-link" href="#" download>Download</a>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /left-panel -->
+
+  <!-- ─── Right panel: live map preview ──────────────────────────────────── -->
+  <div class="right-panel">
+    <div id="map-preview">
+      <!-- Placeholder before city is entered -->
+      <div id="map-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+          <circle cx="12" cy="9" r="2.5"/>
+        </svg>
+        <span>Enter a city to preview the map</span>
+      </div>
+      <!-- Geocoding in-progress overlay -->
+      <div id="map-loading-overlay">
+        <div class="spinner"></div>
+      </div>
+      <!-- Geocoding error banner -->
+      <div id="map-geo-error"></div>
+    </div>
   </div>
 
-  <div class="form-body">
-
-    <!-- City & Country -->
-    <div class="field-row">
-      <div class="field-group">
-        <label for="city">City</label>
-        <input type="text" id="city" placeholder="e.g. Kanpur" autocomplete="off">
-        <div class="error-msg" id="city-error">City is required</div>
-      </div>
-      <div class="field-group">
-        <label for="country">Country</label>
-        <input type="text" id="country" placeholder="e.g. India" autocomplete="off">
-        <div class="error-msg" id="country-error">Country is required</div>
-      </div>
-    </div>
-
-    <!-- Theme -->
-    <div>
-      <div class="section-label">Theme</div>
-      <div class="theme-grid" id="theme-grid"></div>
-    </div>
-
-    <!-- Radius -->
-    <div class="field-group">
-      <label for="radius">Radius from city centre</label>
-      <div class="radius-row">
-        <input type="number" id="radius" value="29000" min="1000" max="100000" step="1000">
-        <span class="radius-unit">metres</span>
-      </div>
-      <div class="field-hint">4 000–6 000 m: small/dense cities &nbsp;·&nbsp; 10 000–20 000 m: large metros &nbsp;·&nbsp; 29 000 m: default</div>
-    </div>
-
-    <!-- Aspect Ratio -->
-    <div class="field-group">
-      <label>Aspect Ratio</label>
-      <div class="toggle-group" id="ratio-group">
-        <button class="toggle-btn active" data-value="3:4">3 : 4 &nbsp;Portrait (12 × 16 in)</button>
-        <button class="toggle-btn" data-value="4:5">4 : 5 &nbsp;Portrait (12 × 15 in)</button>
-      </div>
-    </div>
-
-    <!-- Small roads -->
-    <label class="checkbox-label">
-      <input type="checkbox" id="small-roads">
-      <span class="checkbox-custom"></span>
-      <div class="checkbox-text">
-        <span>Include small roads</span>
-        <span class="hint">residential · living_street · unclassified</span>
-      </div>
-    </label>
-
-    <!-- Generate -->
-    <button class="generate-btn" id="generate-btn" onclick="generate()">
-      Generate Poster
-    </button>
-
-  </div><!-- /form-body -->
-
-  <!-- Output -->
-  <div class="output-section" id="output-section">
-
-    <div class="spinner-wrap" id="spinner">
-      <div class="spinner"></div>
-      <div class="spinner-text">Fetching map data &amp; rendering — this may take a minute…</div>
-    </div>
-
-    <div class="output-error" id="output-error"></div>
-
-    <div class="result-wrap" id="result-wrap">
-      <img class="result-img" id="result-img" src="" alt="Generated map poster">
-      <div class="result-meta">
-        <div class="result-filename" id="result-filename"></div>
-        <a class="download-btn" id="download-link" href="#" download>Download</a>
-      </div>
-    </div>
-
-  </div>
-</div><!-- /card -->
+</div><!-- /page-layout -->
 
 <script>
   // ─── Theme data ────────────────────────────────────────────────────────────
@@ -486,6 +653,13 @@
   // ─── State ─────────────────────────────────────────────────────────────────
   let selectedTheme = 'feature_based';
   let selectedRatio = '3:4';
+
+  // ─── Map state ─────────────────────────────────────────────────────────────
+  let mapInstance = null;
+  let radiusCircle = null;
+  let mapCenter = null;
+  let geocodeTimer = null;
+  let lastGeoKey = '';
 
   // ─── Luminance helper (for dark-background swatch label contrast) ──────────
   function hexLuminance(hex) {
@@ -532,7 +706,6 @@
       const labelDiv = document.createElement('div');
       labelDiv.className = 'swatch-label';
       labelDiv.textContent = t.name;
-      // Dark background → light label text
       if (hexLuminance(t.bg) < 0.15) {
         labelDiv.style.color = '#D1D5DB';
         labelDiv.style.background = '#1F2937';
@@ -564,6 +737,140 @@
     });
   }
 
+  // ─── Radius slider ─────────────────────────────────────────────────────────
+  function formatRadius(meters) {
+    if (meters < 1000) return meters + ' m';
+    const km = meters / 1000;
+    return (Number.isInteger(km) ? km : km.toFixed(1)) + ' km';
+  }
+
+  function updateRadiusHint(meters) {
+    const el = document.getElementById('radius-hint');
+    if (!el) return;
+    if (meters <= 6000) {
+      el.textContent = 'Small or dense city centre';
+    } else if (meters <= 15000) {
+      el.textContent = 'Medium city area';
+    } else if (meters <= 25000) {
+      el.textContent = 'Large metro area';
+    } else {
+      el.textContent = 'Wide area — best for regional maps';
+    }
+  }
+
+  function initRadiusSlider() {
+    const slider = document.getElementById('radius');
+    const display = document.getElementById('radius-display');
+
+    slider.addEventListener('input', () => {
+      const meters = parseInt(slider.value);
+      display.textContent = formatRadius(meters);
+      updateRadiusHint(meters);
+      updateMapCircle();
+    });
+
+    // Set initial values
+    display.textContent = formatRadius(parseInt(slider.value));
+    updateRadiusHint(parseInt(slider.value));
+  }
+
+  // ─── Leaflet map ───────────────────────────────────────────────────────────
+  function initMap() {
+    mapInstance = L.map('map-preview', {
+      center: [20, 0],
+      zoom: 2,
+      zoomControl: true,
+      attributionControl: true,
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(mapInstance);
+
+    window.addEventListener('resize', () => {
+      if (mapInstance) mapInstance.invalidateSize();
+    });
+  }
+
+  function radiusToZoom(radiusMeters) {
+    // Estimate zoom so the circle fills ~65% of the map panel height
+    const mapHeightPx = document.getElementById('map-preview').offsetHeight || 600;
+    const metersPerPx = (2 * radiusMeters) / (mapHeightPx * 0.65);
+    const zoom = Math.log2(156543 / metersPerPx);
+    return Math.max(9, Math.min(15, Math.round(zoom)));
+  }
+
+  function updateMapCircle() {
+    if (!mapInstance || !mapCenter) return;
+    const radius = parseInt(document.getElementById('radius').value) || 29000;
+
+    if (radiusCircle) {
+      radiusCircle.setLatLng(mapCenter);
+      radiusCircle.setRadius(radius);
+    } else {
+      radiusCircle = L.circle(mapCenter, {
+        radius,
+        color: '#2563EB',
+        weight: 2,
+        opacity: 0.85,
+        fillColor: '#2563EB',
+        fillOpacity: 0.08,
+        dashArray: '6, 4',
+      }).addTo(mapInstance);
+    }
+  }
+
+  function showMapGeoError(msg) {
+    const el = document.getElementById('map-geo-error');
+    el.textContent = msg;
+    el.classList.add('visible');
+    setTimeout(() => el.classList.remove('visible'), 6000);
+  }
+
+  async function geocodeAndUpdateMap() {
+    const city = document.getElementById('city').value.trim();
+    const country = document.getElementById('country').value.trim();
+
+    if (!city || !country) return;
+
+    const geoKey = city.toLowerCase() + '|' + country.toLowerCase();
+    if (geoKey === lastGeoKey) return;
+    lastGeoKey = geoKey;
+
+    document.getElementById('map-geo-error').classList.remove('visible');
+    document.getElementById('map-placeholder').style.display = 'none';
+    document.getElementById('map-loading-overlay').classList.add('visible');
+
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&format=json&limit=1`;
+      const resp = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+      const data = await resp.json();
+
+      if (!data || data.length === 0) {
+        showMapGeoError(`Could not find "${city}, ${country}". Check the spelling.`);
+        lastGeoKey = '';
+        return;
+      }
+
+      const lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
+      mapCenter = [lat, lon];
+
+      updateMapCircle();
+
+      const radius = parseInt(document.getElementById('radius').value) || 29000;
+      const zoom = radiusToZoom(radius);
+      mapInstance.flyTo(mapCenter, zoom, { duration: 1.2 });
+
+    } catch (err) {
+      showMapGeoError('Geocoding failed. Check your internet connection.');
+      lastGeoKey = '';
+    } finally {
+      document.getElementById('map-loading-overlay').classList.remove('visible');
+    }
+  }
+
   // ─── Validation ────────────────────────────────────────────────────────────
   function showFieldError(fieldId, msg) {
     const el = document.getElementById(fieldId + '-error');
@@ -579,7 +886,11 @@
   }
 
   ['city', 'country'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => clearFieldError(id));
+    document.getElementById(id).addEventListener('input', () => {
+      clearFieldError(id);
+      clearTimeout(geocodeTimer);
+      geocodeTimer = setTimeout(geocodeAndUpdateMap, 600);
+    });
   });
 
   // ─── Output helpers ─────────────────────────────────────────────────────────
@@ -609,7 +920,6 @@
     dl.href = imgUrl;
     dl.download = filepath.split('/').pop();
     document.getElementById('result-wrap').classList.add('visible');
-    // Scroll to result
     document.getElementById('output-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -665,9 +975,11 @@
     }
   }
 
-  // ─── Allow Enter key to trigger generate ───────────────────────────────────
+  // ─── Allow Enter key to trigger geocoding + generate ───────────────────────
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && (e.target.id === 'city' || e.target.id === 'country')) {
+      clearTimeout(geocodeTimer);
+      geocodeAndUpdateMap();
       generate();
     }
   });
@@ -675,6 +987,8 @@
   // ─── Init ───────────────────────────────────────────────────────────────────
   initThemeGrid();
   initToggleGroups();
+  initMap();
+  initRadiusSlider();
 </script>
 </body>
 </html>

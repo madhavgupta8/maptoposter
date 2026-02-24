@@ -12,6 +12,8 @@ import json
 import os
 from datetime import datetime
 import argparse
+import requests
+from urllib3.exceptions import ProtocolError as Urllib3ProtocolError
 
 THEMES_DIR = "themes"
 FONTS_DIR = "fonts"
@@ -256,32 +258,51 @@ def get_or_fetch_map_data(city: str, country: str, dist: int, base_dir: str):
     print(f"  Found: {location.address}")
     print(f"  Coordinates: {lat:.4f}, {lon:.4f}")
 
-    # Fetch OSM data
-    with tqdm(total=3, desc="Fetching map data", unit="step",
-              bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}') as pbar:
+    # Fetch OSM data with retries for flaky Overpass connections
+    overpass_errors = (requests.exceptions.ChunkedEncodingError, Urllib3ProtocolError)
+    max_attempts = 4
+    original_timeout = ox.settings.requests_timeout
+    ox.settings.requests_timeout = 300  # 5 min for large areas
 
-        pbar.set_description("Downloading street network")
-        G = ox.graph_from_point(point, dist=dist, dist_type='bbox', network_type='all')
-        pbar.update(1)
-        time.sleep(0.5)
-
-        pbar.set_description("Downloading water features")
+    for attempt in range(1, max_attempts + 1):
         try:
-            water = ox.features_from_point(
-                point, tags={'natural': 'water', 'waterway': 'riverbank'}, dist=dist)
-        except Exception:
-            water = None
-        pbar.update(1)
-        time.sleep(0.3)
+            with tqdm(total=3, desc="Fetching map data", unit="step",
+                      bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}') as pbar:
 
-        pbar.set_description("Downloading parks/green spaces")
-        try:
-            parks = ox.features_from_point(
-                point, tags={'leisure': 'park', 'landuse': 'grass'}, dist=dist)
-        except Exception:
-            parks = None
-        pbar.update(1)
+                pbar.set_description("Downloading street network")
+                G = ox.graph_from_point(point, dist=dist, dist_type='bbox', network_type='all')
+                pbar.update(1)
+                time.sleep(0.5)
 
+                pbar.set_description("Downloading water features")
+                try:
+                    water = ox.features_from_point(
+                        point, tags={'natural': 'water', 'waterway': 'riverbank'}, dist=dist)
+                except Exception:
+                    water = None
+                pbar.update(1)
+                time.sleep(0.3)
+
+                pbar.set_description("Downloading parks/green spaces")
+                try:
+                    parks = ox.features_from_point(
+                        point, tags={'leisure': 'park', 'landuse': 'grass'}, dist=dist)
+                except Exception:
+                    parks = None
+                pbar.update(1)
+            break
+        except overpass_errors as e:
+            ox.settings.requests_timeout = original_timeout
+            if attempt == max_attempts:
+                raise RuntimeError(
+                    f"Overpass API connection failed after {max_attempts} attempts "
+                    f"(e.g. response ended prematurely). Try again later or use a smaller radius."
+                ) from e
+            wait = 10 * attempt  # 10, 20, 30 seconds
+            print(f"  Connection error ({e.__class__.__name__}), retrying in {wait}s (attempt {attempt}/{max_attempts})...")
+            time.sleep(wait)
+
+    ox.settings.requests_timeout = original_timeout
     print("  ✓ All network data downloaded successfully.")
 
     # Persist to cache

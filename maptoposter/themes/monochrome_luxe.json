@@ -1,0 +1,15 @@
+{
+  "name": "Monochrome Luxe",
+  "description": "High-end monochrome theme with architectural gray tones",
+  "bg": "#E6E6E4",
+  "text": "#1A1A1A",
+  "gradient_color": "#DADADA",
+  "water": "#C4C4C4",
+  "parks": "#D6D6D6",
+  "road_motorway": "#2B2B2B",
+  "road_primary": "#3A3A3A",
+  "road_secondary": "#4A4A4A",
+  "road_tertiary": "#5A5A5A",
+  "road_residential": "#6A6A6A",
+  "road_default": "#4A4A4A"
+}

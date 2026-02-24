@@ -10,10 +10,13 @@ import json
 import os
 from datetime import datetime
 import argparse
+import networkx as nx
 
-THEMES_DIR = "themes"
-FONTS_DIR = "fonts"
-POSTERS_DIR = "posters"
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+THEMES_DIR = os.path.join(SCRIPT_DIR, "themes")
+FONTS_DIR = os.path.join(SCRIPT_DIR, "fonts")
+POSTERS_DIR = os.path.join(SCRIPT_DIR, "posters")
 
 def load_fonts():
     """
@@ -52,7 +55,7 @@ def generate_output_filename(city, theme_name):
         print(f"✓ Created folder: {city_folder}")
     
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"{city_slug}_{theme_name}_{timestamp}.png"
+    filename = f"{city_slug}_{theme_name}_no_small_roads_{timestamp}.png"
     return os.path.join(city_folder, filename)
 
 def get_available_themes():
@@ -137,6 +140,44 @@ def create_gradient_fade(ax, color, location='bottom', zorder=10):
     
     ax.imshow(gradient, extent=[xlim[0], xlim[1], y_bottom, y_top], 
               aspect='auto', cmap=custom_cmap, zorder=zorder, origin='lower')
+
+def filter_small_roads(G):
+    """
+    Removes edges representing small/residential roads from the graph.
+    Keeps only major roads: motorway, trunk, primary, secondary, tertiary.
+    Returns a new graph with filtered edges.
+    """
+    # Define which road types to KEEP (exclude lowest level roads)
+    major_road_types = [
+        'motorway', 'motorway_link',
+        'trunk', 'trunk_link',
+        'primary', 'primary_link',
+        'secondary', 'secondary_link',
+        'tertiary', 'tertiary_link'
+    ]
+    
+    # Create a new graph with only major roads
+    G_filtered = G.copy()
+    edges_to_remove = []
+    
+    for u, v, key, data in G_filtered.edges(data=True, keys=True):
+        highway = data.get('highway', 'unclassified')
+        
+        # Handle list of highway types
+        if isinstance(highway, list):
+            highway = highway[0] if highway else 'unclassified'
+        
+        # Mark for removal if not a major road
+        if highway not in major_road_types:
+            edges_to_remove.append((u, v, key))
+    
+    # Remove the small roads
+    G_filtered.remove_edges_from(edges_to_remove)
+    
+    print(f"✓ Filtered roads: {len(G.edges())} total → {len(G_filtered.edges())} major roads only")
+    print(f"  (Removed {len(edges_to_remove)} small road segments)")
+    
+    return G_filtered
 
 def get_edge_colors_by_type(G):
     """
@@ -223,6 +264,7 @@ def get_coordinates(city, country):
 def create_poster(city, country, point, dist, output_file, width=12, height=16):
     print(f"\nGenerating map for {city}, {country}...")
     print(f"Output dimensions: {width}\" x {height}\" at 300 DPI")
+    print(f"⚠ Note: This version EXCLUDES small residential roads - only major roads shown")
     
     # Progress bar for data fetching
     with tqdm(total=3, desc="Fetching map data", unit="step", bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt}') as pbar:
@@ -251,6 +293,10 @@ def create_poster(city, country, point, dist, output_file, width=12, height=16):
     
     print("✓ All data downloaded successfully!")
     
+    # Filter out small roads
+    print("Filtering road network...")
+    G = filter_small_roads(G)
+    
     # 2. Setup Plot
     print("Rendering map...")
     fig, ax = plt.subplots(figsize=(width, height), facecolor=THEME['bg'])
@@ -268,7 +314,7 @@ def create_poster(city, country, point, dist, output_file, width=12, height=16):
         if not parks_polys.empty:
             parks_polys.plot(ax=ax, facecolor=THEME['parks'], edgecolor='none', zorder=2)
     
-    # Layer 2: Roads with hierarchy coloring
+    # Layer 2: Roads with hierarchy coloring (only major roads now)
     print("Applying road hierarchy colors...")
     edge_colors = get_edge_colors_by_type(G)
     edge_widths = get_edge_widths_by_type(G)
@@ -337,42 +383,34 @@ def create_poster(city, country, point, dist, output_file, width=12, height=16):
 def print_examples():
     """Print usage examples."""
     print("""
-City Map Poster Generator
-=========================
+City Map Poster Generator (No Small Roads Version)
+==================================================
+
+This version excludes residential and small roads, showing only major arteries:
+- Motorways/Highways
+- Trunk roads
+- Primary roads
+- Secondary roads
+- Tertiary roads
 
 Usage:
-  python create_map_poster.py --city <city> --country <country> [options]
+  python create_map_poster_no_small_roads.py --city <city> --country <country> [options]
 
 Examples:
   # Iconic grid patterns
-  python create_map_poster.py -c "New York" -C "USA" -t noir -d 12000           # Manhattan grid
-  python create_map_poster.py -c "Barcelona" -C "Spain" -t warm_beige -d 8000   # Eixample district grid
+  python create_map_poster_no_small_roads.py -c "New York" -C "USA" -t noir -d 12000
+  python create_map_poster_no_small_roads.py -c "Barcelona" -C "Spain" -t warm_beige -d 8000
   
   # Waterfront & canals
-  python create_map_poster.py -c "Venice" -C "Italy" -t blueprint -d 4000       # Canal network
-  python create_map_poster.py -c "Amsterdam" -C "Netherlands" -t ocean -d 6000  # Concentric canals
-  python create_map_poster.py -c "Dubai" -C "UAE" -t midnight_blue -d 15000     # Palm & coastline
+  python create_map_poster_no_small_roads.py -c "Venice" -C "Italy" -t blueprint -d 4000
+  python create_map_poster_no_small_roads.py -c "Amsterdam" -C "Netherlands" -t ocean -d 6000
   
   # Radial patterns
-  python create_map_poster.py -c "Paris" -C "France" -t pastel_dream -d 10000   # Haussmann boulevards
-  python create_map_poster.py -c "Moscow" -C "Russia" -t noir -d 12000          # Ring roads
-  
-  # Organic old cities
-  python create_map_poster.py -c "Tokyo" -C "Japan" -t japanese_ink -d 15000    # Dense organic streets
-  python create_map_poster.py -c "Marrakech" -C "Morocco" -t terracotta -d 5000 # Medina maze
-  python create_map_poster.py -c "Rome" -C "Italy" -t warm_beige -d 8000        # Ancient street layout
-  
-  # Coastal cities
-  python create_map_poster.py -c "San Francisco" -C "USA" -t sunset -d 10000    # Peninsula grid
-  python create_map_poster.py -c "Sydney" -C "Australia" -t ocean -d 12000      # Harbor city
-  python create_map_poster.py -c "Mumbai" -C "India" -t contrast_zones -d 18000 # Coastal peninsula
-  
-  # River cities
-  python create_map_poster.py -c "London" -C "UK" -t noir -d 15000              # Thames curves
-  python create_map_poster.py -c "Budapest" -C "Hungary" -t copper_patina -d 8000  # Danube split
+  python create_map_poster_no_small_roads.py -c "Paris" -C "France" -t pastel_dream -d 10000
+  python create_map_poster_no_small_roads.py -c "Moscow" -C "Russia" -t noir -d 12000
   
   # List themes
-  python create_map_poster.py --list-themes
+  python create_map_poster_no_small_roads.py --list-themes
 
 Options:
   --city, -c        City name (required)
@@ -383,19 +421,6 @@ Options:
   --height, -H      Image height in inches (default: 16)
   --list-themes     List all available themes
 
-Dimension presets (at 300 DPI):
-  Instagram Post:   -W 3.6  -H 3.6   (1080x1080px)
-  Mobile Wallpaper: -W 3.6  -H 6.4   (1080x1920px)
-  HD Wallpaper:     -W 6.4  -H 3.6   (1920x1080px)
-  4K Wallpaper:     -W 12.8 -H 7.2   (3840x2160px)
-  A4 Print:         -W 8.3  -H 11.7  (2490x3510px)
-
-Distance guide:
-  4000-6000m   Small/dense cities (Venice, Amsterdam old center)
-  8000-12000m  Medium cities, focused downtown (Paris, Barcelona)
-  15000-20000m Large metros, full city view (Tokyo, Mumbai)
-
-Available themes can be found in the 'themes/' directory.
 Generated posters are saved to 'posters/' directory.
 """)
 
@@ -426,15 +451,14 @@ def list_themes():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate beautiful map posters for any city",
+        description="Generate beautiful map posters for any city (major roads only)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python create_map_poster.py --city "New York" --country "USA"
-  python create_map_poster.py --city Tokyo --country Japan --theme midnight_blue
-  python create_map_poster.py --city Paris --country France --theme noir --distance 15000
-  python create_map_poster.py --city Paris --country France -W 8.3 -H 11.7  # A4 print size
-  python create_map_poster.py --list-themes
+  python create_map_poster_no_small_roads.py --city "New York" --country "USA"
+  python create_map_poster_no_small_roads.py --city Tokyo --country Japan --theme midnight_blue
+  python create_map_poster_no_small_roads.py --city Paris --country France --theme noir --distance 15000
+  python create_map_poster_no_small_roads.py --list-themes
         """
     )
     
@@ -473,6 +497,7 @@ Examples:
     
     print("=" * 50)
     print("City Map Poster Generator")
+    print("(Major Roads Only Version)")
     print("=" * 50)
     
     # Load theme

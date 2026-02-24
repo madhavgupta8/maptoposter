@@ -1,0 +1,5 @@
+# App (Flask) + maptoposter HMI script dependencies.
+# Install from project root: pip install -r requirements.txt
+# Then run: python app.py  (or ./venv/bin/python app.py)
+flask>=3.0.0
+-r maptoposter/requirements.txt

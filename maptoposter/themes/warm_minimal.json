@@ -1,0 +1,15 @@
+{
+  "name": "Warm Minimal",
+  "description": "Scandinavian-inspired warm minimal palette with soft neutrals and terracotta accents",
+  "bg": "#F7F2EC",
+  "text": "#8B3F2B",
+  "gradient_color": "#EFE4DA",
+  "water": "#D8CFC7",
+  "parks": "#E6E0D8",
+  "road_motorway": "#C25A3A",
+  "road_primary": "#D07A5C",
+  "road_secondary": "#DB9A83",
+  "road_tertiary": "#E6B7A6",
+  "road_residential": "#EED0C3",
+  "road_default": "#DB9A83"
+}
