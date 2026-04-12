@@ -1,0 +1,21 @@
+[Unit]
+Description=Map Poster API (gunicorn)
+After=network-online.target tailscaled.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mappi
+Group=mappi
+WorkingDirectory=/opt/mappi/backend
+EnvironmentFile=/etc/mappi/env
+ExecStart=/opt/mappi/venv/bin/gunicorn \
+    --workers 2 --threads 4 \
+    --bind 127.0.0.1:4876 \
+    --access-logfile - --error-logfile - \
+    app.wsgi:application
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

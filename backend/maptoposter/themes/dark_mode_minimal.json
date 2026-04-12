@@ -1,0 +1,15 @@
+{
+  "name": "Dark Mode Minimal",
+  "description": "Bold contemporary dark-mode theme with copper accents",
+  "bg": "#121212",
+  "text": "#F2F2F2",
+  "gradient_color": "#1C1C1C",
+  "water": "#1E1E1E",
+  "parks": "#242424",
+  "road_motorway": "#C47A3A",
+  "road_primary": "#D18B4F",
+  "road_secondary": "#DFA36A",
+  "road_tertiary": "#E9BC8F",
+  "road_residential": "#F1D4B5",
+  "road_default": "#DFA36A"
+}

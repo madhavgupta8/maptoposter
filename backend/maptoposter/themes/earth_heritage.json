@@ -1,0 +1,15 @@
+{
+  "name": "Earth & Heritage",
+  "description": "Heritage-inspired earthy palette reminiscent of old maps",
+  "bg": "#EFE6D8",
+  "text": "#5A3A2E",
+  "gradient_color": "#E4D6C4",
+  "water": "#B9C1BA",
+  "parks": "#D8CBB8",
+  "road_motorway": "#6B3F2A",
+  "road_primary": "#8A5436",
+  "road_secondary": "#A46B4A",
+  "road_tertiary": "#BC8462",
+  "road_residential": "#D2A487",
+  "road_default": "#A46B4A"
+}

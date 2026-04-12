@@ -1,0 +1,15 @@
+{
+  "name": "Midnight Blueprint",
+  "description": "Deep navy blueprint-style theme with cool contrasts",
+  "bg": "#0F1C2E",
+  "text": "#E8EDF2",
+  "gradient_color": "#16263D",
+  "water": "#0B1624",
+  "parks": "#1E2F45",
+  "road_motorway": "#D6E1EE",
+  "road_primary": "#B7C7D9",
+  "road_secondary": "#97AFC6",
+  "road_tertiary": "#7F96AE",
+  "road_residential": "#687E95",
+  "road_default": "#97AFC6"
+}

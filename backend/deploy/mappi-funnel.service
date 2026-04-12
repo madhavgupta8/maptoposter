@@ -1,0 +1,13 @@
+[Unit]
+Description=Tailscale Funnel for Map Poster API
+After=tailscaled.service mappi-api.service
+Requires=tailscaled.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/tailscale funnel --bg=false 4876
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

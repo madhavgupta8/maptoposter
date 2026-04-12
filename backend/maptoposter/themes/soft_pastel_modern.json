@@ -1,0 +1,15 @@
+{
+  "name": "Soft Pastel Modern",
+  "description": "Light, trendy pastel palette designed for modern interiors",
+  "bg": "#F4EDEA",
+  "text": "#3B3B3B",
+  "gradient_color": "#EADFDA",
+  "water": "#C9DADB",
+  "parks": "#DDE6DF",
+  "road_motorway": "#C48A7A",
+  "road_primary": "#D4A091",
+  "road_secondary": "#E1B6A9",
+  "road_tertiary": "#EBCBC1",
+  "road_residential": "#F2DED7",
+  "road_default": "#E1B6A9"
+}

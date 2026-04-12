@@ -42,9 +42,16 @@ venv.bak/
 maptoposter/posters/*.png
 maptoposter/posters/*.svg
 maptoposter/posters/*.dxf
+backend/maptoposter/posters/**/*.png
+backend/maptoposter/posters/**/*.svg
+backend/maptoposter/posters/**/*.dxf
+backend/maptoposter/posters/_worker_tmp/
+backend/maptoposter/posters/**/map_data_*/
+backend/maptoposter/cache/
 
 # Keep the posters directory itself
 !maptoposter/posters/.gitkeep
+!backend/maptoposter/posters/.gitkeep
 
 # Jupyter Notebooks
 .ipynb_checkpoints/

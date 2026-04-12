@@ -1,0 +1,19 @@
+[Unit]
+Description=Map Poster Worker
+After=network-online.target mappi-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mappi
+Group=mappi
+WorkingDirectory=/opt/mappi/backend
+EnvironmentFile=/etc/mappi/env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/mappi/venv/bin/python -m worker.worker
+Restart=always
+RestartSec=10
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
