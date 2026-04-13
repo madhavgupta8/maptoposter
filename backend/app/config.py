@@ -36,8 +36,8 @@ class Config:
     SUPABASE_URL = _required("SUPABASE_URL").rstrip("/")
     SUPABASE_SERVICE_KEY = _required("SUPABASE_SERVICE_KEY")
     SUPABASE_BUCKET = os.environ.get("SUPABASE_BUCKET", "map-posters").strip() or "map-posters"
-    RESEND_API_KEY = _required("RESEND_API_KEY")
-    RESEND_FROM_EMAIL = _required("RESEND_FROM_EMAIL")
+    GMAIL_FROM = _required("GMAIL_FROM")
+    GMAIL_APP_PASSWORD = _required("GMAIL_APP_PASSWORD")
     INVITE_CODE_HASH = _required("INVITE_CODE_HASH")
     SIGNED_URL_TTL_SECONDS = _int("SIGNED_URL_TTL_SECONDS", 604800)
     CORS_ORIGINS = _csv("CORS_ORIGINS", "https://guptamadhav.vercel.app,http://localhost:5173")

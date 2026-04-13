@@ -1,8 +1,10 @@
 import base64
 import logging
+import smtplib
 from datetime import datetime
-
-import requests
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 from app.config import Config
 
@@ -33,27 +35,20 @@ def send_completion_email(
       <p>The PNG is also attached to this email.</p>
     </div>
     """.strip()
+
     attachment_name = f"{city.strip().lower().replace(' ', '_')}_{theme}.png"
-    response = requests.post(
-        "https://api.resend.com/emails",
-        headers={
-            "Authorization": f"Bearer {Config.RESEND_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "from": Config.RESEND_FROM_EMAIL,
-            "to": [to_email],
-            "subject": subject,
-            "html": html,
-            "attachments": [
-                {
-                    "filename": attachment_name,
-                    "content": base64.b64encode(png_bytes).decode("ascii"),
-                }
-            ],
-        },
-        timeout=30,
-    )
-    if response.status_code >= 400:
-        logger.error("Resend email failed: %s", response.text)
-        response.raise_for_status()
+
+    msg = MIMEMultipart("mixed")
+    msg["Subject"] = subject
+    msg["From"] = Config.GMAIL_FROM
+    msg["To"] = to_email
+    msg.attach(MIMEText(html, "html"))
+
+    attachment = MIMEApplication(png_bytes, Name=attachment_name)
+    attachment["Content-Disposition"] = f'attachment; filename="{attachment_name}"'
+    msg.attach(attachment)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(Config.GMAIL_FROM, Config.GMAIL_APP_PASSWORD)
+        smtp.sendmail(Config.GMAIL_FROM, to_email, msg.as_string())
+        logger.info("Email sent to %s via Gmail SMTP", to_email)
